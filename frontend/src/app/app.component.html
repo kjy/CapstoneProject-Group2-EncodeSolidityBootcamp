@@ -1,0 +1,35 @@
+<!--
+  Component: Wallet connection
+-->
+<div *ngIf="!wallet" style='float:right;' class="m-4">
+  <button (click)="connectWallet()" mat-raised-button color="primary">Connect Wallet</button>
+</div>
+<div *ngIf="wallet" style='float:right;' class="m-4">
+  <mat-card>
+    <mat-card-header class="with-icon">Wallet Connected <mat-icon aria-hidden="true" color="accent">noise_control_off
+      </mat-icon>
+    </mat-card-header>
+    <mat-card-content class="with-icon">
+      {{
+      (!shortenWalletAddress) ?
+      (wallet.address | slice:0:4) + "..." + (wallet.address | slice:-6):
+      (wallet.address)
+      }}
+      <button mat-button (click)="shortenWalletAddress = !shortenWalletAddress">
+        <mat-icon>more_horiz</mat-icon>
+      </button>
+    </mat-card-content>
+    <mat-card-actions>
+      <button (click)="disconnectWallet()" mat-button color="warn">Disconnect</button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<!--
+  Component: Main page
+-->
+<div class="container">
+  <div class="row">
+
+  </div>
+</div>
