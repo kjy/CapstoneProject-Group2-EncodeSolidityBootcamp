@@ -1,5 +1,6 @@
 [
     {
+        "id": "1",
         "name": "Campaign 1",
         "description": "Campaign 1 description",
         "operator": "0x98123491ab813745123490871234",

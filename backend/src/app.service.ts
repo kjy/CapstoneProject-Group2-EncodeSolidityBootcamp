@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { readCampaignData } from './utils';
+import { readCampaignData, readCampaignListData } from './utils';
 
 @Injectable()
 export class AppService {
   getCampaign(id: string): string {
-    throw new Error('Method not implemented.');
+    return readCampaignData(id);
   }
   getCampaignList(): any {
-    return readCampaignData();
+    return readCampaignListData();
   }
 }
