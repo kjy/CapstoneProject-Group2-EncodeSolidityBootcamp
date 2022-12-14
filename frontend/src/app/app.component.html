@@ -5,7 +5,7 @@
   <button (click)="showConnectWalletForm = !showConnectWalletForm" mat-raised-button
     color="primary">ConnectWallet</button>
 </div>
-<div *ngIf="! wallet && showConnectWalletForm" style='float:right; width: 40%' class="m-4">
+<div *ngIf="! wallet && showConnectWalletForm" style='float:right; width: 40%; z-index: 100;' class="m-4">
   <mat-card>
     <mat-card-header class="with-icon">Enter wallet information</mat-card-header>
     <mat-card-content>
@@ -31,7 +31,7 @@
     </mat-card-content>
   </mat-card>
 </div>
-<div *ngIf="wallet" style='float:right;' class="m-4">
+<div *ngIf="wallet" style='float:right; z-index: 1;' class="m-4">
   <mat-card>
     <mat-card-header class="with-icon">Wallet Connected <mat-icon aria-hidden="true" color="accent">noise_control_off
       </mat-icon>
@@ -65,9 +65,9 @@
 <!--
   Component: Main page
 -->
-<div class="container">
+<div class="container m-4" style="position: relative">
   <div class="row">
-
+    <app-campaigns></app-campaigns>
   </div>
 </div>
 
