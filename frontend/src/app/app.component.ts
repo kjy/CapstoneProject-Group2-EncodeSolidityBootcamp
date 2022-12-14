@@ -26,6 +26,14 @@ export class AppComponent {
     this.backendUrl = "http://localhost:3000"
   }
 
+  ngOnInit() {
+    document.body.className = "selector";
+  }
+
+  ngOnDestroy() {
+    document.body.className = "";
+  }
+
   connectWallet(secret: string, importMethod: string) {
     if (importMethod == 'mnemonic') {
       this.wallet = ethers.Wallet.fromMnemonic(secret ?? "").connect(this.provider);

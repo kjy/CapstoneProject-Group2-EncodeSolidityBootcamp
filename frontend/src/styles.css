@@ -10,3 +10,9 @@ body {
     margin: 0;
     font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+.selector {
+    background-image: url("./assets/bg.jpg");
+    background-size: auto;
+    background-repeat: repeat;
+}

@@ -26,4 +26,19 @@ export class CampaignsComponent {
       'raised': 51
     },
   ]
+
+  getRandomColor() {
+    let letters1 = 'FFFFFFFFFFFF';
+    let letters2 = 'FFFF'
+    let color = '#';
+    for (var i = 0; i < 6; i++) {
+      if (i % 2 == 1) {
+        color += letters1[Math.floor(Math.random() * 12)];
+      }
+      else {
+        color += letters2[Math.floor(Math.random() * 4)];
+      }
+    }
+    return color;
+  }
 }

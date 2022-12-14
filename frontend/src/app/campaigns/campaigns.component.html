@@ -1,6 +1,6 @@
 <mat-grid-list cols="3" rowHeight="2:1">
     <mat-grid-tile *ngFor="let campaign of campaignList">
-        <mat-card style="width: 90%">
+        <mat-card style="width: 90%;" [ngStyle]="{backgroundColor: getRandomColor()}">
             <mat-card-header>
                 <mat-card-title>{{campaign.name}}</mat-card-title>
             </mat-card-header>

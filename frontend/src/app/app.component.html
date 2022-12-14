@@ -3,7 +3,7 @@
 -->
 <div *ngIf="!wallet" style='float:right; z-index: 100; position: relative;' class="m-4">
   <button (click)="showConnectWalletForm = !showConnectWalletForm" mat-raised-button
-    color="primary">ConnectWallet</button>
+    color="accent">ConnectWallet</button>
 </div>
 <div *ngIf="! wallet && showConnectWalletForm" style='float:right; width: 40%; z-index: 100; position: relative;'
   class="m-4">
