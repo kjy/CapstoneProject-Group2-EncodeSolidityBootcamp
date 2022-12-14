@@ -1,12 +1,28 @@
 var fs = require("fs");
 
-const CAMPAIGN_LIST_FILE = 'src/data/campaigns/campaign-list.json';
+const CAMPAIGN_LIST_DIR = 'src/data/campaigns/'
+const CAMPAIGN_LIST_FILE = CAMPAIGN_LIST_DIR + 'campaign-list.json';
 
 
-export async function readCampaignData() {
-    var data = fs.readFileSync(CAMPAIGN_LIST_FILE);
-    data = JSON.parse(data);
-    return data;
+
+export function readCampaignListData() {
+    try {
+        var data = fs.readFileSync(CAMPAIGN_LIST_FILE);
+        data = JSON.parse(data);
+        return data;
+    } catch (error) {
+        return { "error": error["code"] }
+    }
+}
+
+export function readCampaignData(id) {
+    try {
+        var data = fs.readFileSync(CAMPAIGN_LIST_DIR + id + ".json");
+        data = JSON.parse(data);
+        return data;
+    } catch (error) {
+        return { "error": error["code"] }
+    }
 }
 
 export function getCampaignData() {
@@ -18,6 +34,14 @@ export function getCampaignData() {
     // PLACEHOLDER - TO BE REMOVED WHEN TODO ABOVE IS IMPLEMENTED
     data = fs.readFileSync('src/data/mock/campaign-list.json');
     data = JSON.parse(data);
+
+    // split data for individual campaigns
+    data.forEach(item => {
+        fs.writeFile(CAMPAIGN_LIST_DIR + item["id"] + ".json", JSON.stringify(item), err => {
+            // error checking
+            if (err) throw err;
+        });
+    });
 
     // Write new data to the file
     data = JSON.stringify(data);
