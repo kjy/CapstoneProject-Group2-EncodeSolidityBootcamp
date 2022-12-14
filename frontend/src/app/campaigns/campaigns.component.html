@@ -1,3 +1,5 @@
+<button mat-raised-button (click)="openDialog()">Pick one</button>
+
 <mat-grid-list cols="3" rowHeight="2:1">
     <mat-grid-tile *ngFor="let campaign of campaignList">
         <mat-card style="width: 90%">
@@ -6,9 +8,16 @@
             </mat-card-header>
             <mat-card-content>
                 <p>{{campaign.description}}</p>
-                <mat-progress-bar mode="determinate" value="{{100 * campaign.raised / campaign.goal}}">
+                <mat-progress-bar mode="determinate" color="accent" value="{{100 * campaign.raised / campaign.goal}}">
                 </mat-progress-bar>
+                <p></p>
+                <mat-chip class="with-icon">
+                    {{campaign.raised}}/{{campaign.goal}} ETH
+                </mat-chip>
             </mat-card-content>
+            <mat-card-actions align="end">
+                <button mat-button>Learn More</button>
+            </mat-card-actions>
         </mat-card>
     </mat-grid-tile>
 </mat-grid-list>
