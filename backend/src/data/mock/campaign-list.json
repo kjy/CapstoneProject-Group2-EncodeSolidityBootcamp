@@ -1,0 +1,12 @@
+[
+    {
+        "name": "Campaign 1",
+        "description": "Campaign 1 description",
+        "operator": "0x98123491ab813745123490871234",
+        "treasury": "0x9876213987689027340698234587",
+        "startDate": "2006-01-02T15:04:05Z07:00",
+        "endDate": "2008-01-02T15:04:05Z07:00",
+        "goalAmount": 123,
+        "goalProgress": 21
+    }
+]
