@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './material/material.module';
 import { CampaignsComponent } from './campaigns/campaigns.component';
+import { CampaignsModule } from './campaigns/campaigns.module';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { CampaignsComponent } from './campaigns/campaigns.component';
     AppRoutingModule,
     BrowserAnimationsModule,
     MaterialModule,
+    CampaignsModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
