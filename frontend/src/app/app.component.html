@@ -2,22 +2,59 @@
   Component: Wallet connection
 -->
 <div *ngIf="!wallet" style='float:right;' class="m-4">
-  <button (click)="connectWallet()" mat-raised-button color="primary">Connect Wallet</button>
+  <button (click)="showConnectWalletForm = !showConnectWalletForm" mat-raised-button
+    color="primary">ConnectWallet</button>
+</div>
+<div *ngIf="! wallet && showConnectWalletForm" style='float:right; width: 40%' class="m-4">
+  <mat-card>
+    <mat-card-header class="with-icon">Enter wallet information</mat-card-header>
+    <mat-card-content>
+      <form>
+        <div>
+          <mat-form-field>
+            <mat-label>Enter your private key</mat-label>
+            <input matInput #inputPrivateKey>
+            <button (click)="connectWallet(inputPrivateKey.value, 'privatekey')" mat-raised-button color="accent">Via
+              private
+              key</button>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field>
+            <mat-label>Enter your mnemonic seed phrase</mat-label>
+            <input matInput #inputMnemonic>
+            <button (click)="connectWallet(inputMnemonic.value, 'mnemonic')" mat-raised-button color="accent">Via
+              mnemonic</button>
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
 </div>
 <div *ngIf="wallet" style='float:right;' class="m-4">
   <mat-card>
     <mat-card-header class="with-icon">Wallet Connected <mat-icon aria-hidden="true" color="accent">noise_control_off
       </mat-icon>
     </mat-card-header>
-    <mat-card-content class="with-icon">
-      {{
-      (!shortenWalletAddress) ?
-      (wallet.address | slice:0:4) + "..." + (wallet.address | slice:-6):
-      (wallet.address)
-      }}
-      <button mat-button (click)="shortenWalletAddress = !shortenWalletAddress">
-        <mat-icon>more_horiz</mat-icon>
-      </button>
+    <mat-card-content>
+      <p class="with-icon">
+        {{
+        (!shortenWalletAddress) ?
+        (wallet.address | slice:0:4) + "..." + (wallet.address | slice:-6):
+        (wallet.address)
+        }}
+        <button mat-button (click)="shortenWalletAddress = !shortenWalletAddress">
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+      </p>
+      <div class="with-icon">
+        <mat-chip *ngIf="walletBalance" class="with-icon" disabled>
+          {{walletBalance}} ETH
+        </mat-chip>
+        <button mat-button (click)="refreshWallet()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
     </mat-card-content>
     <mat-card-actions>
       <button (click)="disconnectWallet()" mat-button color="warn">Disconnect</button>
@@ -33,3 +70,7 @@
 
   </div>
 </div>
+
+
+
+<!--- Component: IMPORT WALLET MODAL --->
