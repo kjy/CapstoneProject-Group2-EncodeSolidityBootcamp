@@ -61,10 +61,12 @@ contract Campaigns {
 
 
     // @notice donate to a campaign
-    function donate(uint256 _campaignID, uint256 _amount) public payable {
+    function donate(uint256 _campaignID) public payable {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
-        require(_amount >= MINIMUM_DONATION, "The donation amount must be greater than or equal to the minimum donation amount.");
-        require(_amount == msg.value, "The donation amount must be equal to the value sent.");
+        require(msg.value >= MINIMUM_DONATION, "The donation value sent must be greater than or equal to the minimum donation amount.");
+
+        // Store the amount sent in a temporary variable
+        uint256 _amount = msg.value;
 
         // Get the campaign information
         Campaign storage campaign = campaigns[_campaignID];
