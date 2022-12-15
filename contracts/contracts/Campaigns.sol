@@ -40,6 +40,7 @@ contract Campaigns {
 
     // @notice create a new campaign
     function createCampaign(address _treasury, string memory _campaignName, string memory _description, uint256 _targetGoal) external {
+        require(_treasury != address(this), "The treasury address cannot be the contract address.");
         require(_targetGoal > 0, "The target goal must be greater than 0.");
         require(_treasury != address(0), "The treasury address cannot be the zero address.");
         require(bytes(_campaignName).length > 0, "The campaign name cannot be empty.");
@@ -49,7 +50,7 @@ contract Campaigns {
         uint256 index = campaignsIndex + 1;
         
         // Create a new campaign using the provided information
-        campaigns[index] = Campaign(msg.sender, payable(_treasury), _campaignName, _description, _targetGoal, 0, true, block.timestamp);
+        campaigns[index] = Campaign(msg.sender, payable(_treasury), _campaignName, _description, _targetGoal, 0, false, block.timestamp);
 
         // Set the new campaign index
         campaignsIndex = index;
@@ -122,6 +123,39 @@ contract Campaigns {
 
         // Emit the PromotionSubmitted event
         emit PromotionSubmitted(_campaignID, msg.sender, PROMOTION_PRICE, _link, block.timestamp);
+    }
+
+    // @notice allows the campaign operator to update the campaign information
+    function updateCampaign(uint256 _campaignID, address _treasury, string memory _campaignName, string memory _description, uint256 _targetGoal) external {
+        require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
+        require(campaigns[_campaignID].operator == msg.sender, "You are not the operator of this campaign.");
+        require(_treasury != address(this), "The treasury address cannot be the contract address.");
+        require(_targetGoal > 0, "The target goal must be greater than 0.");
+        require(_treasury != address(0), "The treasury address cannot be the zero address.");
+        require(bytes(_campaignName).length > 0, "The campaign name cannot be empty.");
+        require(bytes(_description).length > 0, "The description cannot be empty.");
+
+        // Get the campaign information
+        Campaign storage campaign = campaigns[_campaignID];
+
+        // Update the campaign information
+        campaign.treasury = payable(_treasury);
+        campaign.campaignName = _campaignName;
+        campaign.description = _description;
+        campaign.targetGoal = _targetGoal;
+    }
+
+
+    // @notice flips the status of a campaign
+    function toggleCampaignStatus(uint256 _campaignID) public {
+        require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
+        require(campaigns[_campaignID].operator == msg.sender, "You are not the operator of this campaign.");
+
+        // Get the campaign information
+        Campaign storage campaign = campaigns[_campaignID];
+
+        // Flip the active status
+        campaign.isActive = !campaign.isActive;
     }
 
     // @notice gets the campaign information
