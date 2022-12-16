@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 contract Campaigns {
+    using SafeMath for uint256;
+
     // Events
     event CampaignCreated(uint256 campaignID, address operator, address treasury, string campaignName, string description, uint256 targetGoal, uint256 timestamp);
     event Donated(uint256 campaignID, address donor, uint256 amount, uint256 timestamp);
@@ -31,11 +35,20 @@ contract Campaigns {
     // 1 ETH - 1e18
     uint256 public MINIMUM_DONATION = 1000000000000000000;
 
+    // The platform operator address
+    address public platformOperator;
     // The platform treasury address
     address private platformTreasury;
 
+    // The platform and campaign fee percent - initially set to 20% and 80%
+    uint256 public platformFeePercent;
+    uint256 public campaignFeePercent;
+
     constructor(address _platformTreasury) {
+        platformOperator = msg.sender;
         platformTreasury = _platformTreasury;
+        campaignFeePercent = 80;
+        platformFeePercent = 20;
     }
 
     // @notice create a new campaign
@@ -47,7 +60,7 @@ contract Campaigns {
         require(bytes(_description).length > 0, "The description cannot be empty.");
 
         // Increment the campaign index
-        uint256 index = campaignsIndex + 1;
+        uint256 index = campaignsIndex.add(1);
         
         // Create a new campaign using the provided information
         campaigns[index] = Campaign(msg.sender, payable(_treasury), _campaignName, _description, _targetGoal, 0, false, block.timestamp);
@@ -106,10 +119,10 @@ contract Campaigns {
         require(campaign.isActive, "This campaign is not active.");
 
         // Calculate the platform fee - 20%
-        uint256 platformFee = PROMOTION_PRICE / 100 * 20;
+        uint256 platformFee = PROMOTION_PRICE.div(100).mul(platformFeePercent);
 
         // Calculate the campaign fee - 80%
-        uint256 campaignFee = PROMOTION_PRICE / 100 * 80;
+        uint256 campaignFee = PROMOTION_PRICE.div(100).mul(campaignFeePercent);
 
         // Transfer the platform and campaign fees to their respective treasuries
         payable(platformTreasury).transfer(platformFee);
@@ -158,6 +171,17 @@ contract Campaigns {
 
         // Flip the active status
         campaign.isActive = !campaign.isActive;
+    }
+
+
+    // @notice allows the platform operator to adjust the campaign and platform percentage fee distribution
+    function adjustFeeDistribution(uint256 _campaignFeePercentage, uint256 _platformFeePercentage) public {
+        require(msg.sender == platformOperator, "You are not the platform operator.");
+        require(_campaignFeePercentage.add(_platformFeePercentage) == 100, "The campaign and platform fee must add up to 100.");
+
+        // Update the platform and campaign fee
+        platformFeePercent = _platformFeePercentage;
+        campaignFeePercent = _campaignFeePercentage;
     }
 
     // @notice gets the campaign information
