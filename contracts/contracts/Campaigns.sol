@@ -9,7 +9,7 @@ contract Campaigns {
     // Events
     event CampaignCreated(uint256 campaignID, address operator, address treasury, string campaignName, string description, uint256 targetGoal, uint256 timestamp);
     event Donated(uint256 campaignID, address donor, uint256 amount, uint256 timestamp);
-    event PromotionSubmitted(uint256 campaignID, address promoter, uint256 amountPaid, string link, uint256 timestamp);
+    event PromotionSubmitted(uint256 campaignID, address promoter, uint256 amountPaid, string link, uint256 platformFee, uint256 campaignFee, uint256 timestamp);
 
     // Campaign information
     struct Campaign {
@@ -29,11 +29,11 @@ contract Campaigns {
     // Campaign index
     uint256 public campaignsIndex = 0;
 
-    // 3 ETH - 3e18
-    uint256 public PROMOTION_PRICE = 3000000000000000000;
+    // 0.003 ETH - 3e18
+    uint256 public PROMOTION_PRICE = 3000000000000000;
 
-    // 1 ETH - 1e18
-    uint256 public MINIMUM_DONATION = 1000000000000000000;
+    // 0.001 ETH - 1e18
+    uint256 public MINIMUM_DONATION = 1000000000000000;
 
     // The platform operator address
     address public platformOperator;
@@ -76,16 +76,15 @@ contract Campaigns {
     // @notice donate to a campaign
     function donate(uint256 _campaignID) public payable {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
+
+        // Get the campaign information
+        Campaign storage campaign = campaigns[_campaignID];
+        require(campaign.isActive, "This campaign is not active.");
         require(msg.value >= MINIMUM_DONATION, "The donation value sent must be greater than or equal to the minimum donation amount.");
 
         // Store the amount sent in a temporary variable
         uint256 _amount = msg.value;
 
-        // Get the campaign information
-        Campaign storage campaign = campaigns[_campaignID];
-
-        // Only allow donations if the campaign is active
-        require(campaign.isActive, "This campaign is not active.");
 
         // Transfer the amount to the treasury
         payable(campaign.treasury).transfer(_amount);
@@ -137,7 +136,7 @@ contract Campaigns {
         }
 
         // Emit the PromotionSubmitted event
-        emit PromotionSubmitted(_campaignID, msg.sender, PROMOTION_PRICE, _link, block.timestamp);
+        emit PromotionSubmitted(_campaignID, msg.sender, PROMOTION_PRICE, _link, platformFee, campaignFee, block.timestamp);
     }
 
     // @notice allows the campaign operator to update the campaign information
