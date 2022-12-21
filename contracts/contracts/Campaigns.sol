@@ -23,11 +23,32 @@ contract Campaigns {
         uint256 timestampCreated;
     }
 
+    // Promotion Information
+    struct Promotion {
+        string link;
+        uint256 points;
+    }
+
     // Mapping to keep track of all the campaigns
     mapping (uint256 => Campaign) public campaigns;
 
+    // Mapping of all promotions
+    mapping (uint256 => Promotion) public promotions;
+
+    // Mapping of what promotion is associated with what campaign
+    mapping(uint256 => uint256) public promotionCampaign;
+
+    // Mapping to keep track of what promotions users have used their campaign points towards
+    mapping (address => mapping (uint256 => uint256)) private campaignPointsSpent;
+
+    // Mapping of amount of campaignPoints a user has
+    mapping (address => uint256) private campaignPoints;
+
     // Campaign index
     uint256 public campaignsIndex = 0;
+
+    // Promotino index
+    uint256 public promotionsIndex = 0;
 
     // 0.003 ETH - 3e18
     uint256 public PROMOTION_PRICE = 3000000000000000;
@@ -97,6 +118,9 @@ contract Campaigns {
             campaign.isActive = false;
         }
 
+        // Update campaign points for user
+        campaignPoints[msg.sender] += _amount;
+
         // Emit the Donated event
         emit Donated(_campaignID, msg.sender, _amount, block.timestamp);
     }
@@ -106,10 +130,11 @@ contract Campaigns {
     // The promoter must submit a link to a social media post that promotes the campaign.
     // The payment is refunded if the campaign is not active.
     // The payment is split between the campaign treasury and the platform.
-    function submitPromotion(uint256 _campaignID, string memory _link) public payable {
+    function submitPromotion(uint256 _campaignID, string memory _link, uint256 _points) public payable {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
         require(msg.value == PROMOTION_PRICE, "The promotion price must be equal to the value sent.");
         require(bytes(_link).length > 0, "The link cannot be empty.");
+        require(_points > 0, "The points required to use any promotion cannot be 0.");
 
         // Get the campaign information
         Campaign storage campaign = campaigns[_campaignID];
@@ -134,6 +159,15 @@ contract Campaigns {
         if (campaign.totalDonated >= campaign.targetGoal) {
             campaign.isActive = false;
         }
+
+        // Create a new campaign using the provided information
+        promotions[promotionsIndex] = Promotion(_link, _points);
+
+        // Update mapping to show promotion is associated with campaign
+        promotionCampaign[promotionsIndex] = _campaignID;
+
+        // Set the new campaign index
+        campaignsIndex = promotionsIndex.add(1);
 
         // Emit the PromotionSubmitted event
         emit PromotionSubmitted(_campaignID, msg.sender, PROMOTION_PRICE, _link, platformFee, campaignFee, block.timestamp);
@@ -181,6 +215,14 @@ contract Campaigns {
         // Update the platform and campaign fee
         platformFeePercent = _platformFeePercentage;
         campaignFeePercent = _campaignFeePercentage;
+    }
+
+    // @notice allows contrinbutors to spend campaignPoints towards promotions
+    function spendCampaignPoints(uint256 _promotionId) public {
+        require(_promotionId < promotionsIndex, "Invalid promotion id");
+        require(campaignPoints[msg.sender] >= promotions[_promotionId].points, "not enough points to spend on this campaign");
+        campaignPointsSpent[msg.sender][_promotionId] = promotions[_promotionId].points;
+        campaignPoints[msg.sender] -= promotions[_promotionId].points;
     }
 
     // @notice gets the campaign information
