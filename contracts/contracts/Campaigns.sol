@@ -10,6 +10,7 @@ contract Campaigns {
     event CampaignCreated(uint256 campaignID, address operator, address treasury, string campaignName, string description, uint256 targetGoal, uint256 timestamp);
     event Donated(uint256 campaignID, address donor, uint256 amount, uint256 pointsEarned, uint256 timestamp);
     event PromotionSubmitted(uint256 campaignID, address promoter, uint256 amountPaid, string link, uint256 points, uint256 campaignFee, uint256 timestamp);
+    event PromotionClaimed(uint256 campaignID, uint256 promotionId, address promoter, uint256 points, uint256 timestamp);
 
     // Campaign information
     struct Campaign {
@@ -242,6 +243,8 @@ contract Campaigns {
         require(campaignPoints[msg.sender] >= promotions[_promotionId].points, "not enough points to spend on this campaign");
         campaignPointsSpent[msg.sender][_promotionId] = promotions[_promotionId].points;
         campaignPoints[msg.sender] -= promotions[_promotionId].points;
+
+        emit PromotionClaimed(promotionCampaign[_promotionId], _promotionId, msg.sender, promotions[_promotionId].points, block.timestamp);
     }
 
     // @notice gets the campaign information
