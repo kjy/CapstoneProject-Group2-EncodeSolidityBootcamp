@@ -8,8 +8,8 @@ contract Campaigns {
 
     // Events
     event CampaignCreated(uint256 campaignID, address operator, address treasury, string campaignName, string description, uint256 targetGoal, uint256 timestamp);
-    event Donated(uint256 campaignID, address donor, uint256 amount, uint256 timestamp);
-    event PromotionSubmitted(uint256 campaignID, address promoter, uint256 amountPaid, string link, uint256 platformFee, uint256 campaignFee, uint256 timestamp);
+    event Donated(uint256 campaignID, address donor, uint256 amount, uint256 pointsEarned, uint256 timestamp);
+    event PromotionSubmitted(uint256 campaignID, address promoter, uint256 amountPaid, string link, uint256 points, uint256 campaignFee, uint256 timestamp);
 
     // Campaign information
     struct Campaign {
@@ -39,10 +39,10 @@ contract Campaigns {
     mapping(uint256 => uint256) public promotionCampaign;
 
     // Mapping to keep track of what promotions users have used their campaign points towards
-    mapping (address => mapping (uint256 => uint256)) private campaignPointsSpent;
+    mapping (address => mapping (uint256 => uint256)) public campaignPointsSpent;
 
     // Mapping of amount of campaignPoints a user has
-    mapping (address => uint256) private campaignPoints;
+    mapping (address => uint256) public campaignPoints;
 
     // Campaign index
     uint256 public campaignsIndex = 0;
@@ -110,6 +110,7 @@ contract Campaigns {
 
         // Store the amount sent in a temporary variable
         uint256 _amount = msg.value;
+        uint256 _pointsEarned = _amount;
 
         // eth donation
         (bool success, ) = payable(campaign.treasury).call{value: msg.value}("");
@@ -128,7 +129,7 @@ contract Campaigns {
         campaignPoints[msg.sender] += _amount;
 
         // Emit the Donated event
-        emit Donated(_campaignID, msg.sender, _amount, block.timestamp);
+        emit Donated(_campaignID, msg.sender, _amount, _pointsEarned, block.timestamp);
     }
 
     // @notice allows promoters to submit a promotion social media link for a campaign.
@@ -169,17 +170,17 @@ contract Campaigns {
             campaign.isActive = false;
         }
 
-        // Create a new campaign using the provided information
+        // Create a new promotion using the provided information
         promotions[promotionsIndex] = Promotion(_link, _points);
 
         // Update mapping to show promotion is associated with campaign
         promotionCampaign[promotionsIndex] = _campaignID;
 
-        // Set the new campaign index
-        campaignsIndex = promotionsIndex.add(1);
+        // Set the new promotion index
+        promotionsIndex = promotionsIndex.add(1);
 
         // Emit the PromotionSubmitted event
-        emit PromotionSubmitted(_campaignID, msg.sender, PROMOTION_PRICE, _link, platformFee, campaignFee, block.timestamp);
+        emit PromotionSubmitted(_campaignID, msg.sender, PROMOTION_PRICE, _link, _points, campaignFee, block.timestamp);
     }
 
     // @notice allows the campaign operator to update the campaign information
@@ -236,7 +237,7 @@ contract Campaigns {
     }
 
     // @notice allows contrinbutors to spend campaignPoints towards promotions
-    function spendCampaignPoints(uint256 _promotionId) public {
+    function spendCampaignPoints(uint256 _promotionId) external {
         require(_promotionId < promotionsIndex, "Invalid promotion id");
         require(campaignPoints[msg.sender] >= promotions[_promotionId].points, "not enough points to spend on this campaign");
         campaignPointsSpent[msg.sender][_promotionId] = promotions[_promotionId].points;
