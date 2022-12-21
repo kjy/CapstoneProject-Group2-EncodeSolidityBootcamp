@@ -29,21 +29,20 @@ contract Campaigns {
     // Campaign index
     uint256 public campaignsIndex = 0;
 
-    // 0.003 ETH - 3e18
+    // 0.003 ETH and 0.001 ETH respectively
     uint256 public PROMOTION_PRICE = 3000000000000000;
-
-    // 0.001 ETH - 1e18
     uint256 public MINIMUM_DONATION = 1000000000000000;
 
     // The platform operator address
-    address public platformOperator;
+    address private platformOperator;
     // The platform treasury address
-    address private platformTreasury;
+    address public platformTreasury;
 
     // The platform and campaign fee percent - initially set to 20% and 80%
     uint256 public platformFeePercent;
     uint256 public campaignFeePercent;
 
+    // @param _platformTreasury the platform treasury address
     constructor(address _platformTreasury) {
         platformOperator = msg.sender;
         platformTreasury = _platformTreasury;
@@ -52,6 +51,10 @@ contract Campaigns {
     }
 
     // @notice create a new campaign
+    // @param _treasury the campaign treasury address
+    // @param _campaignName the campaign name
+    // @param _description the campaign description
+    // @param _targetGoal the campaign target goal
     function createCampaign(address _treasury, string memory _campaignName, string memory _description, uint256 _targetGoal) external {
         require(_treasury != address(this), "The treasury address cannot be the contract address.");
         require(_targetGoal > 0, "The target goal must be greater than 0.");
@@ -74,6 +77,7 @@ contract Campaigns {
 
 
     // @notice donate to a campaign
+    // @param _campaignID the campaign ID
     function donate(uint256 _campaignID) public payable {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
 
@@ -85,9 +89,10 @@ contract Campaigns {
         // Store the amount sent in a temporary variable
         uint256 _amount = msg.value;
 
-
-        // Transfer the amount to the treasury
-        payable(campaign.treasury).transfer(_amount);
+        // eth donation
+        (bool success, ) = payable(campaign.treasury).call{value: msg.value}("");
+        require(success, "Transfer failed.");
+        
 
         // Add the donated amount to the total amount donated
         campaign.totalDonated = campaign.totalDonated + _amount;
@@ -103,10 +108,9 @@ contract Campaigns {
 
     // @notice allows promoters to submit a promotion social media link for a campaign.
     // The promoter must pay the PROMOTION_PRICE to submit a promotion link.
-    // The promoter must submit a link to a social media post that promotes the campaign.
-    // The payment is refunded if the campaign is not active.
-    // The payment is split between the campaign treasury and the platform.
-    function submitPromotion(uint256 _campaignID, string memory _link) public payable {
+    // @param _campaignID the campaign ID
+    // @param _link the link to the social media post
+    function submitPromotion(uint256 _campaignID, string memory _link) external payable {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
         require(msg.value == PROMOTION_PRICE, "The promotion price must be equal to the value sent.");
         require(bytes(_link).length > 0, "The link cannot be empty.");
@@ -124,8 +128,13 @@ contract Campaigns {
         uint256 campaignFee = PROMOTION_PRICE.div(100).mul(campaignFeePercent);
 
         // Transfer the platform and campaign fees to their respective treasuries
-        payable(platformTreasury).transfer(platformFee);
-        payable(campaign.treasury).transfer(campaignFee);
+        (bool success2, ) = payable(platformTreasury).call{value: platformFee}("");
+        require(success2, "Transfer to platform treasury failed.");
+        (bool success, ) = payable(campaign.treasury).call{value: campaignFee}("");
+        require(success, "Transfer to campaign treasury failed.");
+
+        // make sure both payments are successful
+        require(success && success2, "Payment split between campaign and platform treasuries failed.");
 
         // Add the donated amount to the total amount donated
         campaign.totalDonated = campaign.totalDonated + campaignFee;
@@ -140,6 +149,11 @@ contract Campaigns {
     }
 
     // @notice allows the campaign operator to update the campaign information
+    // @param _campaignID the campaign ID
+    // @param _treasury the campaign treasury address
+    // @param _campaignName the campaign name
+    // @param _description the campaign description
+    // @param _targetGoal the campaign target goal
     function updateCampaign(uint256 _campaignID, address _treasury, string memory _campaignName, string memory _description, uint256 _targetGoal) external {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
         require(campaigns[_campaignID].operator == msg.sender, "You are not the operator of this campaign.");
@@ -161,7 +175,8 @@ contract Campaigns {
 
 
     // @notice flips the status of a campaign
-    function toggleCampaignStatus(uint256 _campaignID) public {
+    // @param _campaignID the campaign ID
+    function toggleCampaignStatus(uint256 _campaignID) external {
         require(campaigns[_campaignID].operator != address(0), "The campaign does not exist.");
         require(campaigns[_campaignID].operator == msg.sender, "You are not the operator of this campaign.");
 
@@ -174,7 +189,10 @@ contract Campaigns {
 
 
     // @notice allows the platform operator to adjust the campaign and platform percentage fee distribution
-    function adjustFeeDistribution(uint256 _campaignFeePercentage, uint256 _platformFeePercentage) public {
+    // must add up to 100
+    // @param _campaignFeePercentage the campaign fee percentage
+    // @param _platformFeePercentage the platform fee percentage
+    function adjustFeeDistribution(uint256 _campaignFeePercentage, uint256 _platformFeePercentage) external {
         require(msg.sender == platformOperator, "You are not the platform operator.");
         require(_campaignFeePercentage.add(_platformFeePercentage) == 100, "The campaign and platform fee must add up to 100.");
 
@@ -184,17 +202,8 @@ contract Campaigns {
     }
 
     // @notice gets the campaign information
+    // @param _campaignID the campaign ID
     function getCampaign(uint256 _campaignID) public view returns (Campaign memory) {
         return campaigns[_campaignID];
-    }
-
-    // @notice gets the campaign operator
-    function getCampaignOperator(uint256 _campaignID) public view returns (address) {
-        return campaigns[_campaignID].operator;
-    }
-
-    // @notice gets the campaign current index
-    function getLatestCampaignsIndex() public view returns (uint256) {
-        return campaignsIndex;
     }
 }
